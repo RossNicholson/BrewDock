@@ -1,0 +1,155 @@
+import SwiftUI
+
+struct DiscoverTabView: View {
+    @Binding var searchText: String
+    @EnvironmentObject var brewService: BrewService
+    @State private var selectedCategory: DiscoverPackage.Category? = nil
+
+    var filtered: [DiscoverPackage] {
+        var list = selectedCategory.map { cat in
+            DiscoverCatalog.all.filter { $0.category == cat }
+        } ?? DiscoverCatalog.all
+        if !searchText.isEmpty {
+            list = list.filter {
+                $0.displayName.localizedCaseInsensitiveContains(searchText) ||
+                $0.description.localizedCaseInsensitiveContains(searchText) ||
+                $0.id.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        return list
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            categoryPicker
+            Divider()
+            packageList
+        }
+    }
+
+    private var categoryPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                pill(nil, label: "All", symbol: "square.grid.2x2")
+                ForEach(DiscoverPackage.Category.allCases, id: \.self) { cat in
+                    pill(cat, label: cat.rawValue, symbol: cat.symbol)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+        }
+    }
+
+    private func pill(_ category: DiscoverPackage.Category?, label: String, symbol: String) -> some View {
+        let selected = selectedCategory == category
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) { selectedCategory = category }
+        } label: {
+            Label(label, systemImage: symbol)
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(selected ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08))
+                .foregroundStyle(selected ? Color.accentColor : Color.primary)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var packageList: some View {
+        Group {
+            if filtered.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("No results for \"\(searchText)\"")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else {
+                List(filtered) { package in
+                    DiscoverPackageRow(package: package)
+                        .environmentObject(brewService)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+        }
+    }
+}
+
+struct DiscoverPackageRow: View {
+    let package: DiscoverPackage
+    @EnvironmentObject var brewService: BrewService
+
+    var isInstalled: Bool {
+        switch package.type {
+        case .cask:    return brewService.casks.contains    { $0.name == package.id }
+        case .formula: return brewService.formulae.contains { $0.name == package.id }
+        }
+    }
+
+    var isInstalling: Bool {
+        brewService.installingPackages.contains(package.id)
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: package.icon.symbol)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(package.icon.color)
+                .frame(width: 28, height: 28)
+                .background(package.icon.color.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 5) {
+                    Text(package.displayName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    Text(package.type == .cask ? "app" : "tool")
+                        .font(.caption2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.secondary.opacity(0.12))
+                        .foregroundStyle(.secondary)
+                        .clipShape(Capsule())
+                }
+                Text(package.description)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            actionButton
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private var actionButton: some View {
+        if isInstalling {
+            ProgressView().scaleEffect(0.6).frame(width: 60)
+        } else if isInstalled {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.secondary)
+                .font(.body)
+        } else {
+            Button("Install") {
+                Task { await brewService.install(package) }
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.mini)
+        }
+    }
+}

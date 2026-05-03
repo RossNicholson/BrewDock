@@ -1,0 +1,18 @@
+# Xcode derived data and build output
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# Release artifacts
+ExportOptions.plist
+*.dmg
+
+# Xcode user-specific workspace settings
+*.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.swiftpm/

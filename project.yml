@@ -1,0 +1,50 @@
+name: BrewDock
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+options:
+  bundleIdPrefix: com.rossnicholson
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "26.0"
+
+settings:
+  base:
+    PRODUCT_NAME: BrewDock
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  BrewDock:
+    type: application
+    platform: macOS
+    dependencies:
+      - package: Sparkle
+        product: Sparkle
+    sources:
+      - path: BrewDock
+    info:
+      path: BrewDock/Info.plist
+      properties:
+        CFBundleDisplayName: BrewDock
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSUIElement: true
+        NSHighResolutionCapable: true
+        LSMinimumSystemVersion: "13.0"
+        SUFeedURL: https://raw.githubusercontent.com/RossNicholson/BrewDock/main/appcast.xml
+        SUEnableAutomaticChecks: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rossnicholson.BrewDock
+        CODE_SIGN_ENTITLEMENTS: BrewDock/BrewDock.entitlements
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Developer ID Application"
+          DEVELOPMENT_TEAM: "5HQ5V9NP82"
+          ENABLE_HARDENED_RUNTIME: YES
