@@ -99,14 +99,16 @@ struct DiscoverPackageRow: View {
         brewService.installingPackages.contains(package.id)
     }
 
+    private var installedBrewPackage: BrewPackage? {
+        switch package.type {
+        case .cask:    return brewService.casks.first    { $0.name == package.id }
+        case .formula: return brewService.formulae.first { $0.name == package.id }
+        }
+    }
+
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: package.icon.symbol)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(package.icon.color)
-                .frame(width: 28, height: 28)
-                .background(package.icon.color.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            packageIcon
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
@@ -134,6 +136,41 @@ struct DiscoverPackageRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private var packageIcon: some View {
+        if let appIcon = installedBrewPackage?.appIcon {
+            Image(nsImage: appIcon)
+                .resizable()
+                .frame(width: 28, height: 28)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        } else if let urlString = package.iconURL, let url = URL(string: urlString) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 28, height: 28)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                default:
+                    sfSymbolIcon
+                }
+            }
+            .frame(width: 28, height: 28)
+        } else {
+            sfSymbolIcon
+        }
+    }
+
+    private var sfSymbolIcon: some View {
+        Image(systemName: package.icon.symbol)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(package.icon.color)
+            .frame(width: 28, height: 28)
+            .background(package.icon.color.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
     @ViewBuilder
