@@ -34,6 +34,14 @@ To build from source: `brew install xcodegen && xcodegen generate`, then open `B
 
 ---
 
+## Support
+
+If BrewDock saves you time, consider [buying me a coffee](https://buymeacoffee.com/rossnicholson) ☕
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20Ross-yellow?logo=buy-me-a-coffee)](https://buymeacoffee.com/rossnicholson)
+
+---
+
 ## License
 
 GPL v3 — see [LICENSE](LICENSE) for details.
