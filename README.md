@@ -15,7 +15,7 @@ Homebrew is the backbone of most Mac developer setups — but managing it day-to
 - **100% native SwiftUI** — no Electron, no web views, no bloat. Feels right at home on macOS.
 - **Always one click away** — tucked in your menu bar, never cluttering your Dock.
 - **See outdated packages at a glance** — a badge tells you how many updates are waiting.
-- **Discover 85+ popular apps** — browse curated categories and install with one click.
+- **Discover 150+ popular apps** — browse curated categories and install with one click.
 - **Completely free and open source** — GPL v3, no paywalls, no subscriptions.
 
 ---
@@ -32,7 +32,7 @@ All your Homebrew formulae with smart icons. Click any tool to open it in a new 
 All your Homebrew-managed services (PostgreSQL, Redis, nginx, etc.) in one place. Hover to start, stop, or restart — no more `brew services` commands.
 
 ### Discover
-Browse 85+ curated packages across 9 categories — Browsers, Development, Databases, DevOps & Cloud, Media & Design, Productivity, Communication, Security, and Utilities. Every package shows its real icon fetched from the web. Click Install and walk away.
+Browse 150+ curated packages across 10 categories — Browsers, Development, AI & ML, Databases, DevOps & Cloud, Media & Design, Productivity, Communication, Security, and Utilities. Every package shows its real icon fetched from the web. Click Install and walk away.
 
 ### Updates
 An orange badge in the header shows how many packages are out of date. Update them individually on hover, or hit **Update All** to do everything at once.
