@@ -27,16 +27,77 @@ struct DiscoverTabView: View {
         }
     }
 
+    // Ordered list of all categories including "All" (nil)
+    private var allCategories: [DiscoverPackage.Category?] {
+        [nil] + DiscoverPackage.Category.allCases.map { Optional($0) }
+    }
+
+    private var currentIndex: Int {
+        allCategories.firstIndex(where: { $0 == selectedCategory }) ?? 0
+    }
+
+    private func navigateCategory(by delta: Int) {
+        let next = currentIndex + delta
+        guard next >= 0 && next < allCategories.count else { return }
+        withAnimation(.easeInOut(duration: 0.15)) { selectedCategory = allCategories[next] }
+    }
+
     private var categoryPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                pill(nil, label: "All", symbol: "square.grid.2x2")
-                ForEach(DiscoverPackage.Category.allCases, id: \.self) { cat in
-                    pill(cat, label: cat.rawValue, symbol: cat.symbol)
+        HStack(spacing: 0) {
+            // Left chevron
+            Button { navigateCategory(by: -1) } label: {
+                Image(systemName: "chevron.left")
+                    .font(.caption.weight(.semibold))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(currentIndex > 0 ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+            .disabled(currentIndex == 0)
+
+            // Pill strip — scrolls to follow the selected pill
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        pill(nil, label: "All", symbol: "square.grid.2x2")
+                            .id("all")
+                        ForEach(DiscoverPackage.Category.allCases, id: \.self) { cat in
+                            pill(cat, label: cat.rawValue, symbol: cat.symbol)
+                                .id(cat)
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 7)
+                }
+                .onChange(of: selectedCategory) { cat in
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        if let cat {
+                            proxy.scrollTo(cat, anchor: .center)
+                        } else {
+                            proxy.scrollTo("all", anchor: .center)
+                        }
+                    }
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
+            .mask(
+                // Fade edges to hint there's more to scroll
+                HStack(spacing: 0) {
+                    LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: 12)
+                    Color.black
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: 12)
+                }
+            )
+
+            // Right chevron
+            Button { navigateCategory(by: 1) } label: {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(currentIndex < allCategories.count - 1 ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+            .disabled(currentIndex == allCategories.count - 1)
         }
     }
 
