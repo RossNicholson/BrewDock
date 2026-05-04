@@ -5,6 +5,8 @@ struct MenuBarView: View {
     @State private var searchText = ""
     @State private var selectedTab: Tab = .apps
     @State private var showingSettings = false
+    @State private var showingAbout = false
+    @State private var showingHelp = false
     @State private var toastMessage: String? = nil
 
     enum Tab: String, CaseIterable {
@@ -118,6 +120,8 @@ struct MenuBarView: View {
                 .foregroundStyle(.orange)
                 .liquidGlassInteractive(in: Capsule())
             }
+            helpButton
+            infoButton
             settingsButton
             refreshButton
         }
@@ -313,6 +317,140 @@ struct MenuBarView: View {
         .foregroundStyle(.secondary)
         .liquidGlassInteractive(in: Circle())
         .disabled(selectedTab == .services ? brewService.isLoadingServices : brewService.isLoading)
+    }
+
+    private var helpButton: some View {
+        Button { showingHelp.toggle() } label: {
+            Image(systemName: "questionmark.circle")
+                .font(.footnote)
+                .padding(6)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .liquidGlassInteractive(in: Circle())
+        .popover(isPresented: $showingHelp, arrowEdge: .top) {
+            helpView
+        }
+    }
+
+    private var helpView: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 6) {
+                Image(systemName: "lifepreserver")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.blue)
+                Text("Help & Support")
+                    .font(.title3).fontWeight(.semibold)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Found a bug or need help? Visit the support page or drop us an email — we read everything.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Feature requests and feedback are always welcome too.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(spacing: 10) {
+                Link(destination: URL(string: "https://rossnicholson.dev/support")!) {
+                    Label("Support Page", systemImage: "globe")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
+                .liquidGlassInteractive(in: Capsule())
+
+                Link(destination: URL(string: "mailto:support@rossnicholson.dev")!) {
+                    Label("support@rossnicholson.dev", systemImage: "envelope")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .liquidGlassInteractive(in: Capsule())
+            }
+        }
+        .padding(20)
+        .frame(width: 240)
+    }
+
+    private var infoButton: some View {
+        Button { showingAbout.toggle() } label: {
+            Image(systemName: "info.circle")
+                .font(.footnote)
+                .padding(6)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .liquidGlassInteractive(in: Circle())
+        .popover(isPresented: $showingAbout, arrowEdge: .top) {
+            aboutView
+        }
+    }
+
+    private var aboutView: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 6) {
+                Image(systemName: "mug.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.brown)
+                Text("BrewDock")
+                    .font(.title3).fontWeight(.semibold)
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            VStack(spacing: 8) {
+                Text("Made by Ross Nicholson")
+                    .font(.subheadline)
+                Link("rossnicholson.dev", destination: URL(string: "https://rossnicholson.dev")!)
+                    .font(.caption)
+                Link(destination: URL(string: "https://github.com/RossNicholson/homebrew-brewdock")!) {
+                    Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
+                        .font(.caption)
+                }
+            }
+
+            Divider()
+
+            VStack(spacing: 4) {
+                Text("If you find BrewDock helpful:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Link(destination: URL(string: "https://buymeacoffee.com/rossnicholson")!) {
+                    Label("Buy Me a Coffee", systemImage: "cup.and.saucer.fill")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.orange)
+                .liquidGlassInteractive(in: Capsule())
+            }
+
+            Divider()
+
+            HStack(spacing: 12) {
+                Link("Terms & Conditions", destination: URL(string: "https://rossnicholson.dev/terms")!)
+                Text("·").foregroundStyle(.tertiary)
+                Link("Privacy Policy", destination: URL(string: "https://rossnicholson.dev/privacy")!)
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .frame(width: 220)
     }
 }
 
