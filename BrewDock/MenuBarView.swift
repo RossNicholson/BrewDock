@@ -5,6 +5,7 @@ struct MenuBarView: View {
     @State private var searchText = ""
     @State private var selectedTab: Tab = .apps
     @State private var showingSettings = false
+    @State private var toastMessage: String? = nil
 
     enum Tab: String, CaseIterable {
         case apps     = "Apps"
@@ -46,12 +47,35 @@ struct MenuBarView: View {
         }
         .frame(minWidth: 280, minHeight: 300)
         .liquidGlassBackground(in: Rectangle())
+        .overlay(alignment: .bottom) {
+            if let msg = toastMessage {
+                Text(msg)
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.red.opacity(0.88))
+                    .clipShape(Capsule())
+                    .padding(.bottom, 44)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .allowsHitTesting(false)
+            }
+        }
         .onAppear {
             Task { await brewService.refresh() }
         }
         .onChange(of: selectedTab) { newTab in
             if newTab == .services && brewService.services.isEmpty {
                 Task { await brewService.refreshServices() }
+            }
+        }
+        .onChange(of: brewService.lastError) { err in
+            guard let err else { return }
+            withAnimation(.spring(duration: 0.3)) { toastMessage = err }
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                withAnimation(.easeOut) { toastMessage = nil }
+                brewService.lastError = nil
             }
         }
     }

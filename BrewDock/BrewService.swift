@@ -2,19 +2,19 @@ import Foundation
 import AppKit
 import SwiftUI
 
-struct BrewPackage: Identifiable, Hashable {
+struct BrewPackage: Identifiable {
     var id: String { "\(type):\(name)" }
     let name: String
     let version: String
     let type: PackageType
     var isOutdated: Bool = false
     var resolvedAppPath: String? = nil
+    var appIcon: NSImage? = nil  // cached once during refresh — not recomputed on every redraw
 
     enum PackageType {
         case cask, formula
     }
 
-    // True for casks that install only a CLI binary, no .app bundle
     var isCLIOnly: Bool {
         type == .cask && resolvedAppPath == nil
     }
@@ -27,16 +27,20 @@ struct BrewPackage: Identifiable, Hashable {
         FormulaIcons.icon(for: name)
     }
 
-    var appIcon: NSImage? {
-        appURL.map { NSWorkspace.shared.icon(forFile: $0.path) }
-    }
-
     var runningApplication: NSRunningApplication? {
         guard type == .cask, let appPath = resolvedAppPath else { return nil }
         return NSWorkspace.shared.runningApplications.first {
             $0.bundleURL?.path == appPath
         }
     }
+}
+
+// NSImage is not Hashable — provide manual conformance that ignores the icon
+extension BrewPackage: Hashable {
+    static func == (lhs: BrewPackage, rhs: BrewPackage) -> Bool {
+        lhs.id == rhs.id && lhs.isOutdated == rhs.isOutdated
+    }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 struct HomebrewService: Identifiable, Hashable {
@@ -84,6 +88,7 @@ class BrewService: ObservableObject {
     @Published var removingPackages: Set<String> = []
     @Published var installingPackages: Set<String> = []
     @Published var managingServices: Set<String> = []
+    @Published var lastError: String? = nil
     private var outdatedNames: Set<String> = []
 
     func refresh() async {
@@ -91,58 +96,65 @@ class BrewService: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        async let caskOutput = brew(["list", "--cask", "--versions"])
-        async let formulaOutput = brew(["list", "--formula", "--versions"])
-        async let outdatedOutput = brew(["outdated", "--quiet"])
+        async let caskResult    = brew(["list", "--cask", "--versions"])
+        async let formulaResult = brew(["list", "--formula", "--versions"])
+        async let outdatedResult = brew(["outdated", "--quiet"])
 
-        let (caskRaw, formulaRaw, outdatedRaw) = await (caskOutput, formulaOutput, outdatedOutput)
+        let (caskRes, formulaRes, outdatedRes) = await (caskResult, formulaResult, outdatedResult)
 
-        outdatedNames = Set(outdatedRaw.lines)
-        var parsedCasks = parse(caskRaw, type: .cask)
+        outdatedNames = Set(outdatedRes.output.lines)
+        var parsedCasks = parse(caskRes.output, type: .cask)
 
-        // Enrich casks with real .app paths from brew info
         if !parsedCasks.isEmpty {
             let names = parsedCasks.map(\.name)
-            let infoJSON = await brew(["info", "--json=v2", "--cask"] + names)
-            let appPaths = parseAppPaths(from: infoJSON)
+            let infoRes = await brew(["info", "--json=v2", "--cask"] + names)
+            let appPaths = parseAppPaths(from: infoRes.output)
             parsedCasks = parsedCasks.map { pkg in
-                var updated = pkg
-                updated.resolvedAppPath = appPaths[pkg.name]
-                return updated
+                var p = pkg
+                if let path = appPaths[pkg.name] {
+                    p.resolvedAppPath = path
+                    p.appIcon = NSWorkspace.shared.icon(forFile: path)
+                }
+                return p
             }
         }
 
         self.casks = parsedCasks
-        self.formulae = parse(formulaRaw, type: .formula)
+        self.formulae = parse(formulaRes.output, type: .formula)
     }
 
     func upgrade(_ package: BrewPackage) async {
         updatingPackages.insert(package.name)
         defer { updatingPackages.remove(package.name) }
-        let typeFlag = package.type == .cask ? "--cask" : "--formula"
-        _ = await brew(["upgrade", typeFlag, package.name])
+        let flag = package.type == .cask ? "--cask" : "--formula"
+        let result = await brew(["upgrade", flag, package.name])
+        if result.exitCode != 0 { lastError = "Failed to update \(package.name)" }
         await refresh()
     }
 
     func install(_ package: DiscoverPackage) async {
         installingPackages.insert(package.id)
         defer { installingPackages.remove(package.id) }
-        let typeFlag = package.type == .cask ? "--cask" : "--formula"
-        _ = await brew(["install", typeFlag, package.id])
+        let flag = package.type == .cask ? "--cask" : "--formula"
+        let result = await brew(["install", flag, package.id])
+        if result.exitCode != 0 { lastError = "Failed to install \(package.displayName)" }
         await refresh()
     }
 
     func uninstall(_ package: BrewPackage) async {
         removingPackages.insert(package.name)
         defer { removingPackages.remove(package.name) }
-        let typeFlag = package.type == .cask ? "--cask" : "--formula"
-        _ = await brew(["uninstall", typeFlag, package.name])
+        let flag = package.type == .cask ? "--cask" : "--formula"
+        let result = await brew(["uninstall", flag, package.name])
+        if result.exitCode != 0 { lastError = "Failed to uninstall \(package.name)" }
         await refresh()
     }
 
     func upgradeAll() async {
-        isLoading = true
-        _ = await brew(["upgrade"])
+        // Bug fix: do NOT set isLoading = true here — refresh() owns that flag.
+        // Setting it here caused refresh()'s guard to short-circuit, leaving the list stale.
+        let result = await brew(["upgrade"])
+        if result.exitCode != 0 { lastError = "Some updates failed" }
         await refresh()
     }
 
@@ -150,8 +162,8 @@ class BrewService: ObservableObject {
         guard !isLoadingServices else { return }
         isLoadingServices = true
         defer { isLoadingServices = false }
-        let output = await brew(["services", "list"])
-        services = parseServices(output)
+        let result = await brew(["services", "list"])
+        services = parseServices(result.output)
     }
 
     func startService(_ service: HomebrewService) async {
@@ -169,7 +181,8 @@ class BrewService: ObservableObject {
     private func manageService(_ service: HomebrewService, command: String) async {
         managingServices.insert(service.name)
         defer { managingServices.remove(service.name) }
-        _ = await brew(["services", command, service.name])
+        let result = await brew(["services", command, service.name])
+        if result.exitCode != 0 { lastError = "Failed to \(command) \(service.name)" }
         await refreshServices()
     }
 
@@ -201,7 +214,6 @@ class BrewService: ObservableObject {
         }
     }
 
-    // Parses `brew info --json=v2 --cask` output into a token → app path map
     private func parseAppPaths(from json: String) -> [String: String] {
         guard
             let data = json.data(using: .utf8),
@@ -237,22 +249,34 @@ private let brewPath: String = {
     return candidates.first { FileManager.default.fileExists(atPath: $0) } ?? "/opt/homebrew/bin/brew"
 }()
 
-private func brew(_ args: [String]) async -> String {
+private struct BrewResult {
+    let output: String
+    let exitCode: Int32
+}
+
+private func brew(_ args: [String]) async -> BrewResult {
     await withCheckedContinuation { continuation in
         let process = Process()
         process.executableURL = URL(fileURLWithPath: brewPath)
         process.arguments = args
         let pipe = Pipe()
         process.standardOutput = pipe
-        process.standardError = Pipe()
-        process.terminationHandler = { _ in
+        process.standardError = FileHandle.nullDevice  // prevent stderr buffer-fill hang
+
+        // 30-second hard timeout so a hung brew never freezes the UI permanently
+        DispatchQueue.global().asyncAfter(deadline: .now() + 30) {
+            if process.isRunning { process.terminate() }
+        }
+
+        process.terminationHandler = { p in
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            continuation.resume(returning: String(data: data, encoding: .utf8) ?? "")
+            let output = String(data: data, encoding: .utf8) ?? ""
+            continuation.resume(returning: BrewResult(output: output, exitCode: p.terminationStatus))
         }
         do {
             try process.run()
         } catch {
-            continuation.resume(returning: "")
+            continuation.resume(returning: BrewResult(output: "", exitCode: 1))
         }
     }
 }

@@ -151,7 +151,9 @@ struct PackageRowView: View {
     private func openInTerminal(command: String) {
         let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("brewdock-\(command).command")
-        let script = "#!/bin/bash\nclear\n\(command)\n"
+        // Single-quote the command to handle names with hyphens, dots, @ etc.
+        let safe = command.replacingOccurrences(of: "'", with: "'\\''")
+        let script = "#!/bin/bash\nclear\n'\(safe)'\n"
         do {
             try script.write(to: tmp, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes(
