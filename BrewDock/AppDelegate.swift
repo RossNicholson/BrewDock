@@ -1,12 +1,15 @@
 import AppKit
 import SwiftUI
 import Sparkle
+import Combine
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private var panel: NSPanel!
     private var eventMonitor: Any?
+    private var dotView: NSView?
+    private var cancellables = Set<AnyCancellable>()
     let brewService = BrewService()
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil
@@ -23,6 +26,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         setupPanel()
+        setupUpdateDot()
+        observeUpdates()
+    }
+
+    private func setupUpdateDot() {
+        guard let button = statusItem.button else { return }
+        let size: CGFloat = 7
+        let dot = NSView()
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.wantsLayer = true
+        dot.layer?.backgroundColor = NSColor.orange.cgColor
+        dot.layer?.cornerRadius = size / 2
+        dot.isHidden = true
+        button.addSubview(dot)
+        NSLayoutConstraint.activate([
+            dot.widthAnchor.constraint(equalToConstant: size),
+            dot.heightAnchor.constraint(equalToConstant: size),
+            dot.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -1),
+            dot.topAnchor.constraint(equalTo: button.topAnchor, constant: 3),
+        ])
+        dotView = dot
+    }
+
+    private func observeUpdates() {
+        Publishers.CombineLatest(brewService.$casks, brewService.$formulae)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] casks, formulae in
+                let hasUpdates = (casks + formulae).contains(where: \.isOutdated)
+                self?.dotView?.isHidden = !hasUpdates
+            }
+            .store(in: &cancellables)
     }
 
     private func setupPanel() {
