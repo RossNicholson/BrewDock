@@ -20,7 +20,7 @@
 > Homebrew cask coming soon. For now, build from source:
 
 ```bash
-git clone https://github.com/RossNicholson/BrewDock.git
+git clone https://github.com/RossNicholson/homebrew-brewdock.git
 cd BrewDock
 brew install xcodegen
 xcodegen generate
