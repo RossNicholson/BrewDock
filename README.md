@@ -17,17 +17,10 @@
 
 ## Install
 
-> Homebrew cask coming soon. For now, build from source:
-
 ```bash
-git clone https://github.com/RossNicholson/homebrew-brewdock.git
-cd BrewDock
-brew install xcodegen
-xcodegen generate
-open BrewDock.xcodeproj
+brew tap RossNicholson/brewdock
+brew install --cask brewdock
 ```
-
-Press `Cmd+R` in Xcode. The **mug icon** appears in your menu bar.
 
 **Requirements:** macOS 13+ · [Homebrew](https://brew.sh) installed · Apple Silicon or Intel
 
@@ -37,7 +30,7 @@ Press `Cmd+R` in Xcode. The **mug icon** appears in your menu bar.
 
 Bug reports, feature requests, and PRs welcome — open an issue or start a discussion.
 
-> No `.xcodeproj` is checked in. Run `xcodegen generate` after cloning.
+To build from source: `brew install xcodegen && xcodegen generate`, then open `BrewDock.xcodeproj` and press `Cmd+R`. No `.xcodeproj` is checked in.
 
 ---
 
