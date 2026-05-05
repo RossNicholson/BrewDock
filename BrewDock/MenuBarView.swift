@@ -432,7 +432,7 @@ struct MenuBarView: View {
                     .font(.subheadline)
                 Link("rossnicholson.dev", destination: URL(string: "https://rossnicholson.dev")!)
                     .font(.caption)
-                Link(destination: URL(string: "https://github.com/RossNicholson/homebrew-brewdock")!) {
+                Link(destination: URL(string: "https://github.com/RossNicholson/brewdock")!) {
                     Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                         .font(.caption)
                 }

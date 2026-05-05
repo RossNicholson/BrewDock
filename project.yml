@@ -36,7 +36,7 @@ targets:
         LSUIElement: true
         NSHighResolutionCapable: true
         LSMinimumSystemVersion: "13.0"
-        SUFeedURL: https://raw.githubusercontent.com/RossNicholson/homebrew-brewdock/main/appcast.xml
+        SUFeedURL: https://raw.githubusercontent.com/RossNicholson/brewdock/main/appcast.xml
         SUEnableAutomaticChecks: true
     settings:
       base:

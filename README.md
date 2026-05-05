@@ -18,7 +18,7 @@
 ## Install
 
 ```bash
-brew tap RossNicholson/brewdock
+brew tap RossNicholson/brewdock https://github.com/RossNicholson/brewdock
 brew install --cask brewdock
 ```
 
