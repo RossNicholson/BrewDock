@@ -7,6 +7,7 @@ struct MenuBarView: View {
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingHelp = false
+    @State private var showingBrewfile = false
     @State private var toastMessage: String? = nil
 
     enum Tab: String, CaseIterable {
@@ -120,6 +121,7 @@ struct MenuBarView: View {
                 .foregroundStyle(.orange)
                 .liquidGlassInteractive(in: Capsule())
             }
+            brewfileButton
             helpButton
             infoButton
             settingsButton
@@ -317,6 +319,20 @@ struct MenuBarView: View {
         .foregroundStyle(.secondary)
         .liquidGlassInteractive(in: Circle())
         .disabled(selectedTab == .services ? brewService.isLoadingServices : brewService.isLoading)
+    }
+
+    private var brewfileButton: some View {
+        Button { showingBrewfile.toggle() } label: {
+            Image(systemName: "square.and.arrow.down")
+                .font(.footnote)
+                .padding(6)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .liquidGlassInteractive(in: Circle())
+        .popover(isPresented: $showingBrewfile, arrowEdge: .top) {
+            BrewfileView().environmentObject(brewService)
+        }
     }
 
     private var helpButton: some View {

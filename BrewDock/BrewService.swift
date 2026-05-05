@@ -89,6 +89,7 @@ class BrewService: ObservableObject {
     @Published var installingPackages: Set<String> = []
     @Published var managingServices: Set<String> = []
     @Published var lastError: String? = nil
+    @Published var isBrewfileWorking = false
     private var outdatedNames: Set<String> = []
 
     func refresh() async {
@@ -156,6 +157,48 @@ class BrewService: ObservableObject {
         let result = await brew(["upgrade"])
         if result.exitCode != 0 { lastError = "Some updates failed" }
         await refresh()
+    }
+
+    func brewfileDump(to path: String) async -> (success: Bool, message: String) {
+        isBrewfileWorking = true
+        defer { isBrewfileWorking = false }
+        let result = await brew(["bundle", "dump", "--file=\(path)", "--force"])
+        guard result.exitCode == 0 else { return (false, "Failed to export Brewfile.") }
+        return (true, "Brewfile saved.")
+    }
+
+    func brewfileInstall(from path: String) async -> (success: Bool, message: String) {
+        isBrewfileWorking = true
+        defer { isBrewfileWorking = false }
+        let result = await brew(["bundle", "install", "--file=\(path)"], timeout: 600)
+        if result.exitCode == 0 { await refresh() }
+        guard result.exitCode == 0 else { return (false, "Some packages failed to install.") }
+        return (true, "All packages installed.")
+    }
+
+    func brewfileCheck(at path: String) async -> (success: Bool, message: String) {
+        isBrewfileWorking = true
+        defer { isBrewfileWorking = false }
+        let result = await brew(["bundle", "check", "--file=\(path)", "--verbose"])
+        if result.exitCode == 0 { return (true, "All packages are installed.") }
+        let missing = result.output.lines.filter { $0.hasPrefix("x ") }.map { String($0.dropFirst(2)) }
+        return (false, missing.isEmpty ? "Some packages are missing." : "Missing: \(missing.joined(separator: ", "))")
+    }
+
+    func brewfileCleanupPreview(at path: String) async -> [String] {
+        isBrewfileWorking = true
+        defer { isBrewfileWorking = false }
+        let result = await brew(["bundle", "cleanup", "--file=\(path)"])
+        return result.output.lines.filter { !$0.isEmpty }
+    }
+
+    func brewfileCleanup(at path: String) async -> (success: Bool, message: String) {
+        isBrewfileWorking = true
+        defer { isBrewfileWorking = false }
+        let result = await brew(["bundle", "cleanup", "--file=\(path)", "--force"])
+        if result.exitCode == 0 { await refresh() }
+        guard result.exitCode == 0 else { return (false, "Cleanup failed.") }
+        return (true, "Cleanup complete.")
     }
 
     func refreshServices() async {
@@ -254,7 +297,7 @@ private struct BrewResult {
     let exitCode: Int32
 }
 
-private func brew(_ args: [String]) async -> BrewResult {
+private func brew(_ args: [String], timeout: TimeInterval = 30) async -> BrewResult {
     await withCheckedContinuation { continuation in
         let process = Process()
         process.executableURL = URL(fileURLWithPath: brewPath)
@@ -263,8 +306,7 @@ private func brew(_ args: [String]) async -> BrewResult {
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice  // prevent stderr buffer-fill hang
 
-        // 30-second hard timeout so a hung brew never freezes the UI permanently
-        DispatchQueue.global().asyncAfter(deadline: .now() + 30) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
             if process.isRunning { process.terminate() }
         }
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0340713FE26CEDF0E4EDD2A0 /* FormulaIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503440E86E47889F134F948C /* FormulaIcons.swift */; };
+		0B8E514444A8AD2CB70ABF92 /* BrewfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACBC1B238338C194118F6083 /* BrewfileView.swift */; };
 		14E6F6389CC75707C9F058BC /* PackageRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 341FE46FCDDD8CD2EEF85137 /* PackageRowView.swift */; };
 		20DE48E19430760FBA2321E3 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A346F38852F4B702A7A516C /* MenuBarView.swift */; };
 		2954B2235972C3A2493C665B /* BrewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 250F33E2A3C8FF27E3FB785A /* BrewService.swift */; };
@@ -34,6 +35,7 @@
 		771150EC08441ABC3EC1DD1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7CDD1D41DE8EB6E1E2E6722C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8A346F38852F4B702A7A516C /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		ACBC1B238338C194118F6083 /* BrewfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewfileView.swift; sourceTree = "<group>"; };
 		DA6511EB48F677664E54300B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
 		E7D3C526889D003BC43FAD7E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 				771150EC08441ABC3EC1DD1C /* Assets.xcassets */,
 				4AC65231F149F5DE798D8B0E /* BrewDock.entitlements */,
 				0A547DD2500FDF4F98DE1FF5 /* BrewDockApp.swift */,
+				ACBC1B238338C194118F6083 /* BrewfileView.swift */,
 				250F33E2A3C8FF27E3FB785A /* BrewService.swift */,
 				FCDA32D50FEC4D1761B3D80C /* DiscoverPackage.swift */,
 				E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */,
@@ -164,6 +167,7 @@
 				8307C1100E99F99BD5D5C7F8 /* AppDelegate.swift in Sources */,
 				EB1668047B6F2D788991D287 /* BrewDockApp.swift in Sources */,
 				2954B2235972C3A2493C665B /* BrewService.swift in Sources */,
+				0B8E514444A8AD2CB70ABF92 /* BrewfileView.swift in Sources */,
 				A028D58D8573DA62145455B8 /* DiscoverPackage.swift in Sources */,
 				31B9AA09C82A37530619A2BF /* DiscoverView.swift in Sources */,
 				0340713FE26CEDF0E4EDD2A0 /* FormulaIcons.swift in Sources */,
