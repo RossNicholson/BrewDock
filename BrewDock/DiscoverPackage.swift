@@ -74,6 +74,9 @@ private func icon(_ domain: String) -> String {
 enum DiscoverCatalog {
     static let all: [DiscoverPackage] = [
 
+        // MARK: Featured
+        .init("adios", "Adios", "Open-source ad blocker for Safari on macOS", .security, .cask),
+
         // MARK: Browsers
         .init("google-chrome",  "Google Chrome",   "Fast, secure web browser by Google",              .browsers, .cask, icon("chrome.google.com")),
         .init("firefox",        "Firefox",         "Free and open-source web browser",                .browsers, .cask, icon("mozilla.org")),
