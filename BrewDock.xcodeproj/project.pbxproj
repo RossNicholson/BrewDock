@@ -14,7 +14,6 @@
 		2954B2235972C3A2493C665B /* BrewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 250F33E2A3C8FF27E3FB785A /* BrewService.swift */; };
 		31B9AA09C82A37530619A2BF /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */; };
 		8307C1100E99F99BD5D5C7F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D3C526889D003BC43FAD7E /* AppDelegate.swift */; };
-		8EB79BC693A019D0C3A6C880 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E6185971CD8EE9289EB4D0E7 /* Sparkle */; };
 		98BBD02CA4ABA5A9F7EC0D12 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 771150EC08441ABC3EC1DD1C /* Assets.xcassets */; };
 		A028D58D8573DA62145455B8 /* DiscoverPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCDA32D50FEC4D1761B3D80C /* DiscoverPackage.swift */; };
 		AD6C949DD52CB525A59ED6EA /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6511EB48F677664E54300B /* SettingsView.swift */; };
@@ -47,7 +46,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8EB79BC693A019D0C3A6C880 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,7 +107,6 @@
 			);
 			name = BrewDock;
 			packageProductDependencies = (
-				E6185971CD8EE9289EB4D0E7 /* Sparkle */,
 			);
 			productName = BrewDock;
 			productReference = 4365A8D2E1676E7A11C70D45 /* BrewDock.app */;
@@ -136,7 +133,6 @@
 			mainGroup = FDDCF261E707027AE34D28C2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				FA4DCC76713B97B640185588 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E36A701CBFF8956828D21571 /* Products */;
@@ -366,24 +362,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		FA4DCC76713B97B640185588 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		E6185971CD8EE9289EB4D0E7 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = FA4DCC76713B97B640185588 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 60BCB17F25DAD72C99617655 /* Project object */;
 }

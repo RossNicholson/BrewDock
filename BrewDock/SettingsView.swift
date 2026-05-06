@@ -2,8 +2,8 @@ import SwiftUI
 import ServiceManagement
 
 struct SettingsView: View {
+    @EnvironmentObject var brewService: BrewService
     @State private var launchAtLogin = (SMAppService.mainApp.status == .enabled)
-    @State private var autoUpdate = (NSApp.delegate as? AppDelegate)?.updaterController.updater.automaticallyChecksForUpdates ?? true
 
     var body: some View {
         VStack(spacing: 16) {
@@ -27,18 +27,28 @@ struct SettingsView: View {
                         }
                     }
 
-                Toggle("Auto-check for Updates", isOn: $autoUpdate)
-                    .onChange(of: autoUpdate) { enabled in
-                        (NSApp.delegate as? AppDelegate)?.updaterController.updater.automaticallyChecksForUpdates = enabled
-                    }
-
                 Divider()
 
-                Button("Check for Updates…") {
-                    (NSApp.delegate as? AppDelegate)?.updaterController.checkForUpdates(nil)
+                if brewService.selfUpdateAvailable {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("A BrewDock update is available.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Button(brewService.isUpdatingSelf ? "Updating…" : "Update BrewDock…") {
+                            Task { await brewService.updateSelf() }
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.accentColor)
+                        .disabled(brewService.isUpdatingSelf)
+                    }
+                } else {
+                    Button(brewService.isCheckingSelfUpdate ? "Checking…" : "Check for Updates…") {
+                        Task { await brewService.checkSelfUpdate() }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.accentColor)
+                    .disabled(brewService.isCheckingSelfUpdate)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color.accentColor)
             }
         }
         .padding(20)

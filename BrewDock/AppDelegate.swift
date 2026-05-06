@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import Sparkle
 import Combine
 
 @MainActor
@@ -11,9 +10,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var dotView: NSView?
     private var cancellables = Set<AnyCancellable>()
     let brewService = BrewService()
-    let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil
-    )
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -28,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupPanel()
         setupUpdateDot()
         observeUpdates()
+        Task { await brewService.checkSelfUpdate() }
     }
 
     private func setupUpdateDot() {
@@ -50,10 +47,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func observeUpdates() {
-        Publishers.CombineLatest(brewService.$casks, brewService.$formulae)
+        Publishers.CombineLatest3(brewService.$casks, brewService.$formulae, brewService.$selfUpdateAvailable)
             .receive(on: RunLoop.main)
-            .sink { [weak self] casks, formulae in
-                let hasUpdates = (casks + formulae).contains(where: \.isOutdated)
+            .sink { [weak self] casks, formulae, selfUpdate in
+                let hasUpdates = (casks + formulae).contains(where: \.isOutdated) || selfUpdate
                 self?.dotView?.isHidden = !hasUpdates
             }
             .store(in: &cancellables)

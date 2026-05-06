@@ -90,6 +90,9 @@ class BrewService: ObservableObject {
     @Published var managingServices: Set<String> = []
     @Published var lastError: String? = nil
     @Published var isBrewfileWorking = false
+    @Published var selfUpdateAvailable: Bool = false
+    @Published var isCheckingSelfUpdate: Bool = false
+    @Published var isUpdatingSelf: Bool = false
     private var outdatedNames: Set<String> = []
 
     func refresh() async {
@@ -149,6 +152,24 @@ class BrewService: ObservableObject {
         let result = await brew(["uninstall", flag, package.name])
         if result.exitCode != 0 { lastError = "Failed to uninstall \(package.name)" }
         await refresh()
+    }
+
+    func checkSelfUpdate() async {
+        isCheckingSelfUpdate = true
+        defer { isCheckingSelfUpdate = false }
+        let result = await brew(["outdated", "--cask", "brewdock"])
+        selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
+    }
+
+    func updateSelf() async {
+        isUpdatingSelf = true
+        let result = await brew(["upgrade", "--cask", "brewdock"], timeout: 120)
+        if result.exitCode == 0 {
+            NSApp.terminate(nil)
+        } else {
+            isUpdatingSelf = false
+            lastError = "Failed to update BrewDock"
+        }
     }
 
     func upgradeAll() async {
