@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupPanel()
         setupUpdateDot()
         observeUpdates()
-        Task { await brewService.checkSelfUpdate() }
+        Task { await brewService.checkSelfUpdateSilent() }
     }
 
     private func setupUpdateDot() {

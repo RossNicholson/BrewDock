@@ -154,6 +154,13 @@ class BrewService: ObservableObject {
         await refresh()
     }
 
+    // Called on launch — quick check against local cache, no network fetch
+    func checkSelfUpdateSilent() async {
+        let result = await brew(["outdated", "--cask", "brewdock"])
+        selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
+    }
+
+    // Called when the user explicitly clicks "Check for Updates" — runs brew update first
     func checkSelfUpdate() async {
         isCheckingSelfUpdate = true
         defer { isCheckingSelfUpdate = false }
