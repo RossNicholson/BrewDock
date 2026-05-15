@@ -75,6 +75,7 @@ enum DiscoverCatalog {
     static let all: [DiscoverPackage] = [
 
         // MARK: Featured
+        .init("clawdbar", "ClawdBar", "macOS menu bar app showing your Claude Code usage limits at a glance", .ai, .cask),
         .init("adios", "Adios", "Open-source ad blocker for Safari on macOS", .security, .cask),
 
         // MARK: Browsers
