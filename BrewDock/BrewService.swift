@@ -157,6 +157,7 @@ class BrewService: ObservableObject {
     func checkSelfUpdate() async {
         isCheckingSelfUpdate = true
         defer { isCheckingSelfUpdate = false }
+        await brew(["update"], timeout: 60)
         let result = await brew(["outdated", "--cask", "brewdock"])
         selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
     }
