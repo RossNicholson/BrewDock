@@ -23,8 +23,8 @@ targets:
       path: BrewDock/Info.plist
       properties:
         CFBundleDisplayName: BrewDock
-        CFBundleShortVersionString: "1.0.8"
-        CFBundleVersion: "14"
+        CFBundleShortVersionString: "1.0.9"
+        CFBundleVersion: "15"
         LSUIElement: true
         NSHighResolutionCapable: true
         LSMinimumSystemVersion: "13.0"
