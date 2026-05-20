@@ -54,7 +54,10 @@ xcodebuild -exportArchive -archivePath build/BrewDock.xcarchive \
   -exportPath build/export -exportOptionsPlist ExportOptions.plist -quiet || fail "export failed"
 
 APP="build/export/BrewDock.app"
-codesign -dvvv "$APP" 2>&1 | grep -q "Authority=Developer ID Application" \
+# Capture then string-match: piping codesign into `grep -q` races under
+# `pipefail` (grep exits on match, codesign dies with SIGPIPE -> false failure).
+SIGN_INFO="$(codesign -dvvv "$APP" 2>&1)"
+[[ "$SIGN_INFO" == *"Authority=Developer ID Application"* ]] \
   || fail "app is not Developer ID signed"
 
 step "Building DMG ($DMG)"
@@ -66,7 +69,7 @@ rm -rf build/dmg-staging
 step "Notarizing (this can take a few minutes)"
 SUBMIT="$(xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait 2>&1)"
 echo "$SUBMIT"
-echo "$SUBMIT" | grep -q "status: Accepted" || fail "notarization was not Accepted"
+[[ "$SUBMIT" == *"status: Accepted"* ]] || fail "notarization was not Accepted"
 
 step "Stapling and verifying"
 xcrun stapler staple "$DMG" || fail "stapling failed"
@@ -75,7 +78,7 @@ xcrun stapler validate "$DMG" >/dev/null || fail "staple validation failed"
 MP="$(hdiutil attach -nobrowse -readonly "$DMG" | grep Volumes | awk '{print $3}')"
 ASSESS="$(spctl -a -vvv -t exec "$MP/BrewDock.app" 2>&1 || true)"
 hdiutil detach "$MP" -quiet
-echo "$ASSESS" | grep -q "Notarized Developer ID" \
+[[ "$ASSESS" == *"Notarized Developer ID"* ]] \
   || { echo "$ASSESS"; fail "app inside DMG is not notarized/accepted"; }
 
 SHA="$(shasum -a 256 "$DMG" | awk '{print $1}')"
