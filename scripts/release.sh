@@ -67,7 +67,13 @@ hdiutil create -volname "BrewDock" -srcfolder build/dmg-staging -ov -format UDZO
 rm -rf build/dmg-staging
 
 step "Notarizing (this can take a few minutes)"
-SUBMIT="$(xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait 2>&1)"
+# CI passes an App Store Connect API key via env; locally we use the stored
+# notarytool keychain profile.
+if [[ -n "${NOTARY_KEY_P8:-}" && -n "${NOTARY_KEY_ID:-}" && -n "${NOTARY_ISSUER_ID:-}" ]]; then
+  SUBMIT="$(xcrun notarytool submit "$DMG" --key "$NOTARY_KEY_P8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait 2>&1)"
+else
+  SUBMIT="$(xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait 2>&1)"
+fi
 echo "$SUBMIT"
 [[ "$SUBMIT" == *"status: Accepted"* ]] || fail "notarization was not Accepted"
 
@@ -98,11 +104,19 @@ fi
 
 step "Publishing v$VERSION to GitHub"
 command -v gh >/dev/null || fail "gh not installed"
-git tag "v$VERSION" && git push origin "v$VERSION"
+# In CI the tag already exists (it triggered the run); locally it doesn't yet.
+if ! git rev-parse "v$VERSION" >/dev/null 2>&1; then
+  git tag "v$VERSION"
+  git push origin "v$VERSION"
+fi
 gh release create "v$VERSION" "$DMG" --repo "$GH_REPO" --title "v$VERSION" --generate-notes
 
 step "Bumping Homebrew tap cask"
-[[ -d "$TAP" ]] || fail "tap not found at $TAP"
+# Locally the tap is a sibling checkout; in CI we clone it with the push token.
+if [[ ! -d "$TAP" ]]; then
+  [[ -n "${TAP_PUSH_TOKEN:-}" ]] || fail "tap not found at $TAP and no TAP_PUSH_TOKEN to clone it"
+  git clone "https://x-access-token:${TAP_PUSH_TOKEN}@github.com/RossNicholson/homebrew-tap.git" "$TAP"
+fi
 CASK="$TAP/Casks/brewdock.rb"
 /usr/bin/sed -i '' -E "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA\"/" "$CASK"
 git -C "$TAP" add Casks/brewdock.rb
