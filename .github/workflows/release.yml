@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: macos-26
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +32,8 @@ jobs:
 
       - name: Select newest Xcode
         run: |
+          sw_vers
+          echo "Installed Xcodes:"; ls -d /Applications/Xcode*.app
           XC="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
           sudo xcode-select -s "${XC:-/Applications/Xcode.app}"
           xcodebuild -version
