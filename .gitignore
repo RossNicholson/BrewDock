@@ -4,8 +4,7 @@ build/
 *.xcuserstate
 xcuserdata/
 
-# Release artifacts
-ExportOptions.plist
+# Release artifacts (ExportOptions.plist is committed — CI needs it, no secrets in it)
 *.dmg
 
 # Xcode user-specific workspace settings
