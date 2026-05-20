@@ -308,7 +308,7 @@ struct MenuBarView: View {
             if selectedTab == .services {
                 Task { await brewService.refreshServices() }
             } else {
-                Task { await brewService.refresh() }
+                Task { await brewService.refresh(force: true) }
             }
         } label: {
             Image(systemName: "arrow.clockwise")

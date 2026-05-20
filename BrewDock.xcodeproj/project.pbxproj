@@ -15,12 +15,24 @@
 		31B9AA09C82A37530619A2BF /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */; };
 		8307C1100E99F99BD5D5C7F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D3C526889D003BC43FAD7E /* AppDelegate.swift */; };
 		98BBD02CA4ABA5A9F7EC0D12 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 771150EC08441ABC3EC1DD1C /* Assets.xcassets */; };
+		99F875975481F8F426760A1A /* BrewParseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3999942A157B537C78219A00 /* BrewParseTests.swift */; };
 		A028D58D8573DA62145455B8 /* DiscoverPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCDA32D50FEC4D1761B3D80C /* DiscoverPackage.swift */; };
 		AD6C949DD52CB525A59ED6EA /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6511EB48F677664E54300B /* SettingsView.swift */; };
+		BF97D9C2737EA6EF061CFAB2 /* BrewParse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E590DD931E1D08AEF44F26 /* BrewParse.swift */; };
 		CB419945D0C2F1F5044A2E0B /* View+Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030F70820038EA899675CA49 /* View+Glass.swift */; };
 		EB1668047B6F2D788991D287 /* BrewDockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A547DD2500FDF4F98DE1FF5 /* BrewDockApp.swift */; };
 		EE938E160CFA88B6094F7F3A /* ServiceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16969FF28CA92DA2624C50CF /* ServiceRowView.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8952F314FBFE0B325CF25C8F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60BCB17F25DAD72C99617655 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C7060ECBB3020D04AF740880;
+			remoteInfo = BrewDock;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		030F70820038EA899675CA49 /* View+Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Glass.swift"; sourceTree = "<group>"; };
@@ -28,12 +40,15 @@
 		16969FF28CA92DA2624C50CF /* ServiceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRowView.swift; sourceTree = "<group>"; };
 		250F33E2A3C8FF27E3FB785A /* BrewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewService.swift; sourceTree = "<group>"; };
 		341FE46FCDDD8CD2EEF85137 /* PackageRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRowView.swift; sourceTree = "<group>"; };
+		36E590DD931E1D08AEF44F26 /* BrewParse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewParse.swift; sourceTree = "<group>"; };
+		3999942A157B537C78219A00 /* BrewParseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewParseTests.swift; sourceTree = "<group>"; };
 		4365A8D2E1676E7A11C70D45 /* BrewDock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BrewDock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AC65231F149F5DE798D8B0E /* BrewDock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BrewDock.entitlements; sourceTree = "<group>"; };
 		503440E86E47889F134F948C /* FormulaIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormulaIcons.swift; sourceTree = "<group>"; };
 		771150EC08441ABC3EC1DD1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7CDD1D41DE8EB6E1E2E6722C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8A346F38852F4B702A7A516C /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		A16265C0D540C22593B7FE55 /* BrewDockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BrewDockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ACBC1B238338C194118F6083 /* BrewfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrewfileView.swift; sourceTree = "<group>"; };
 		DA6511EB48F677664E54300B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
@@ -50,6 +65,7 @@
 				4AC65231F149F5DE798D8B0E /* BrewDock.entitlements */,
 				0A547DD2500FDF4F98DE1FF5 /* BrewDockApp.swift */,
 				ACBC1B238338C194118F6083 /* BrewfileView.swift */,
+				36E590DD931E1D08AEF44F26 /* BrewParse.swift */,
 				250F33E2A3C8FF27E3FB785A /* BrewService.swift */,
 				FCDA32D50FEC4D1761B3D80C /* DiscoverPackage.swift */,
 				E6DE9A086D90E815A39C88A5 /* DiscoverView.swift */,
@@ -68,14 +84,24 @@
 			isa = PBXGroup;
 			children = (
 				4365A8D2E1676E7A11C70D45 /* BrewDock.app */,
+				A16265C0D540C22593B7FE55 /* BrewDockTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F0500E2C93E797EE370B4FFD /* BrewDockTests */ = {
+			isa = PBXGroup;
+			children = (
+				3999942A157B537C78219A00 /* BrewParseTests.swift */,
+			);
+			path = BrewDockTests;
 			sourceTree = "<group>";
 		};
 		FDDCF261E707027AE34D28C2 = {
 			isa = PBXGroup;
 			children = (
 				96D973215F2F9D9E52514672 /* BrewDock */,
+				F0500E2C93E797EE370B4FFD /* BrewDockTests */,
 				E36A701CBFF8956828D21571 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +127,24 @@
 			productReference = 4365A8D2E1676E7A11C70D45 /* BrewDock.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F77B05598021049637E2FFB0 /* BrewDockTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9D6AF404AA28493A26EA9FA4 /* Build configuration list for PBXNativeTarget "BrewDockTests" */;
+			buildPhases = (
+				07442FBC30383E728DD6C080 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E1F354319393FFDCFF7D5A23 /* PBXTargetDependency */,
+			);
+			name = BrewDockTests;
+			packageProductDependencies = (
+			);
+			productName = BrewDockTests;
+			productReference = A16265C0D540C22593B7FE55 /* BrewDockTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -110,6 +154,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					F77B05598021049637E2FFB0 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 130D04DD9CD0C2964DC0F231 /* Build configuration list for PBXProject "BrewDock" */;
@@ -127,6 +175,7 @@
 			projectRoot = "";
 			targets = (
 				C7060ECBB3020D04AF740880 /* BrewDock */,
+				F77B05598021049637E2FFB0 /* BrewDockTests */,
 			);
 		};
 /* End PBXProject section */
@@ -143,12 +192,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		07442FBC30383E728DD6C080 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99F875975481F8F426760A1A /* BrewParseTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B3C2AF37C3860DF697653150 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				8307C1100E99F99BD5D5C7F8 /* AppDelegate.swift in Sources */,
 				EB1668047B6F2D788991D287 /* BrewDockApp.swift in Sources */,
+				BF97D9C2737EA6EF061CFAB2 /* BrewParse.swift in Sources */,
 				2954B2235972C3A2493C665B /* BrewService.swift in Sources */,
 				0B8E514444A8AD2CB70ABF92 /* BrewfileView.swift in Sources */,
 				A028D58D8573DA62145455B8 /* DiscoverPackage.swift in Sources */,
@@ -164,7 +222,34 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E1F354319393FFDCFF7D5A23 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C7060ECBB3020D04AF740880 /* BrewDock */;
+			targetProxy = 8952F314FBFE0B325CF25C8F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		121C918ED6D023EAB2EEE195 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rossnicholson.BrewDockTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrewDock.app/Contents/MacOS/BrewDock";
+			};
+			name = Release;
+		};
 		2D1F8158C7C4E143E76D6DB9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -223,7 +308,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = BrewDock;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -282,13 +367,32 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_NAME = BrewDock;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
+		};
+		9F6D674D8D24D5AA8AD29E8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rossnicholson.BrewDockTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BrewDock.app/Contents/MacOS/BrewDock";
+			};
+			name = Debug;
 		};
 		DF8CDFB6A668CAC317DCB596 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -343,6 +447,15 @@
 			buildConfigurations = (
 				EFD6F608342AD6FF21E93AF2 /* Debug */,
 				DF8CDFB6A668CAC317DCB596 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9D6AF404AA28493A26EA9FA4 /* Build configuration list for PBXNativeTarget "BrewDockTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F6D674D8D24D5AA8AD29E8A /* Debug */,
+				121C918ED6D023EAB2EEE195 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

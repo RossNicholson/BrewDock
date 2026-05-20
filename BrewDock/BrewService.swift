@@ -94,9 +94,17 @@ class BrewService: ObservableObject {
     @Published var isCheckingSelfUpdate: Bool = false
     @Published var isUpdatingSelf: Bool = false
     private var outdatedNames: Set<String> = []
+    private var lastRefresh: Date = .distantPast
+    /// Resolved cask token → app bundle path. `brew info` is slow over many casks,
+    /// so we only query it for casks we haven't already resolved.
+    private var appPathCache: [String: String] = [:]
+    private static let refreshTTL: TimeInterval = 30
 
-    func refresh() async {
+    func refresh(force: Bool = false) async {
         guard !isLoading else { return }
+        // The panel triggers refresh on every open; skip if we refreshed recently
+        // so reopening feels instant. The manual refresh button passes force: true.
+        if !force, Date().timeIntervalSince(lastRefresh) < Self.refreshTTL { return }
         isLoading = true
         defer { isLoading = false }
 
@@ -107,15 +115,13 @@ class BrewService: ObservableObject {
         let (caskRes, formulaRes, outdatedRes) = await (caskResult, formulaResult, outdatedResult)
 
         outdatedNames = Set(outdatedRes.output.lines)
-        var parsedCasks = parse(caskRes.output, type: .cask)
+        var parsedCasks = BrewParse.packages(from: caskRes.output, type: .cask, outdated: outdatedNames)
 
         if !parsedCasks.isEmpty {
-            let names = parsedCasks.map(\.name)
-            let infoRes = await brew(["info", "--json=v2", "--cask"] + names)
-            let appPaths = parseAppPaths(from: infoRes.output)
+            await resolveAppPaths(forCaskNames: parsedCasks.map(\.name))
             parsedCasks = parsedCasks.map { pkg in
                 var p = pkg
-                if let path = appPaths[pkg.name] {
+                if let path = appPathCache[pkg.name] {
                     p.resolvedAppPath = path
                     p.appIcon = NSWorkspace.shared.icon(forFile: path)
                 }
@@ -124,7 +130,25 @@ class BrewService: ObservableObject {
         }
 
         self.casks = parsedCasks
-        self.formulae = parse(formulaRes.output, type: .formula)
+        self.formulae = BrewParse.packages(from: formulaRes.output, type: .formula, outdated: outdatedNames)
+        lastRefresh = Date()
+    }
+
+    /// Populate `appPathCache` for any cask tokens we don't yet know, by asking
+    /// `brew info` only about the unknown ones and resolving them against disk.
+    private func resolveAppPaths(forCaskNames names: [String]) async {
+        let unknown = names.filter { appPathCache[$0] == nil }
+        guard !unknown.isEmpty else { return }
+        let infoRes = await brew(["info", "--json=v2", "--cask"] + unknown)
+        for (token, appNames) in BrewParse.caskAppNames(fromJSON: infoRes.output) {
+            let candidates = appNames.flatMap { name in
+                ["/Applications/\(name)",
+                 NSString(string: "~/Applications/\(name)").expandingTildeInPath]
+            }
+            if let path = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) {
+                appPathCache[token] = path
+            }
+        }
     }
 
     func upgrade(_ package: BrewPackage) async {
@@ -165,7 +189,7 @@ class BrewService: ObservableObject {
     func checkSelfUpdate(showProgress: Bool = true) async {
         if showProgress { isCheckingSelfUpdate = true }
         defer { if showProgress { isCheckingSelfUpdate = false } }
-        await brew(["update"], timeout: 60)
+        _ = await brew(["update"], timeout: 60)
         let result = await brew(["outdated", "--cask", "brewdock"])
         selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
     }
@@ -200,6 +224,7 @@ class BrewService: ObservableObject {
 
         let pid = ProcessInfo.processInfo.processIdentifier
         let appPath = Bundle.main.bundlePath
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.rossnicholson.BrewDock"
 
         // Note: `$(...)`, `$LOG`, `$status` are literal shell — only `\(...)` is
         // interpolated by Swift. Paths are quoted to tolerate spaces.
@@ -218,7 +243,7 @@ class BrewService: ObservableObject {
         status=$?
         echo "[$(date)] brew exited with status $status" >> "$LOG"
         if [ "$status" -eq 0 ]; then
-            open "\(appPath)"
+            open -b "\(bundleID)" || open "\(appPath)"
         else
             osascript -e 'display notification "Update failed — see ~/Library/Application Support/BrewDock/self-update.log" with title "BrewDock"' >/dev/null 2>&1 || true
         fi
@@ -299,8 +324,8 @@ class BrewService: ObservableObject {
         guard !isLoadingServices else { return }
         isLoadingServices = true
         defer { isLoadingServices = false }
-        let result = await brew(["services", "list"])
-        services = parseServices(result.output)
+        let result = await brew(["services", "list", "--json"])
+        services = BrewParse.services(fromJSON: result.output)
     }
 
     func startService(_ service: HomebrewService) async {
@@ -323,62 +348,6 @@ class BrewService: ObservableObject {
         await refreshServices()
     }
 
-    private func parseServices(_ output: String) -> [HomebrewService] {
-        var lines = output.lines
-        if lines.first?.split(separator: " ").first?.lowercased() == "name" {
-            lines.removeFirst()
-        }
-        return lines.compactMap { line in
-            let parts = line.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
-            guard parts.count >= 2 else { return nil }
-            let status = HomebrewService.Status(rawValue: parts[1]) ?? .unknown
-            let user = parts.count > 2 ? parts[2] : ""
-            return HomebrewService(name: parts[0], status: status, user: user)
-        }
-    }
-
-    private func parse(_ output: String, type: BrewPackage.PackageType) -> [BrewPackage] {
-        output.lines.compactMap { line in
-            let parts = line.split(separator: " ", maxSplits: 1)
-            guard let name = parts.first.map(String.init) else { return nil }
-            let version = parts.count > 1 ? String(parts[1]) : ""
-            return BrewPackage(
-                name: name,
-                version: version,
-                type: type,
-                isOutdated: outdatedNames.contains(name)
-            )
-        }
-    }
-
-    private func parseAppPaths(from json: String) -> [String: String] {
-        guard
-            let data = json.data(using: .utf8),
-            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let casks = obj["casks"] as? [[String: Any]]
-        else { return [:] }
-
-        var result: [String: String] = [:]
-        for cask in casks {
-            guard
-                let token = cask["token"] as? String,
-                let artifacts = cask["artifacts"] as? [[String: Any]]
-            else { continue }
-
-            for artifact in artifacts {
-                guard let apps = artifact["app"] as? [String], let appName = apps.first else { continue }
-                let candidates = [
-                    "/Applications/\(appName)",
-                    (NSString(string: "~/Applications/\(appName)").expandingTildeInPath)
-                ]
-                if let path = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) {
-                    result[token] = path
-                    break
-                }
-            }
-        }
-        return result
-    }
 }
 
 private let brewPath: String = {
@@ -391,11 +360,29 @@ private struct BrewResult {
     let exitCode: Int32
 }
 
+/// Deterministic environment for every `brew` invocation. A Finder-launched app
+/// inherits a minimal environment, so we set an explicit PATH (incl. the brew
+/// prefix, for the git/curl/etc. brew shells out to), HOME, a UTF-8 locale, and
+/// disable implicit auto-update + hint noise so output stays parseable.
+private let brewEnvironment: [String: String] = {
+    var env = ProcessInfo.processInfo.environment
+    let prefix = (brewPath as NSString).deletingLastPathComponent   // e.g. /opt/homebrew/bin
+    let base = "\(prefix):/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    let inherited = env["PATH"].map { ":\($0)" } ?? ""
+    env["PATH"] = base + inherited
+    if env["HOME"] == nil { env["HOME"] = NSHomeDirectory() }
+    if env["LANG"] == nil { env["LANG"] = "en_US.UTF-8" }
+    env["HOMEBREW_NO_AUTO_UPDATE"] = "1"   // explicit `brew update` still works
+    env["HOMEBREW_NO_ENV_HINTS"] = "1"
+    return env
+}()
+
 private func brew(_ args: [String], timeout: TimeInterval = 30) async -> BrewResult {
     await withCheckedContinuation { continuation in
         let process = Process()
         process.executableURL = URL(fileURLWithPath: brewPath)
         process.arguments = args
+        process.environment = brewEnvironment
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice  // prevent stderr buffer-fill hang
@@ -417,7 +404,7 @@ private func brew(_ args: [String], timeout: TimeInterval = 30) async -> BrewRes
     }
 }
 
-private extension String {
+extension String {
     var lines: [String] {
         split(separator: "\n").map(String.init).filter { !$0.isEmpty }
     }

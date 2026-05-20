@@ -7,7 +7,6 @@ options:
 
 settings:
   base:
-    PRODUCT_NAME: BrewDock
     SWIFT_VERSION: "6.0"
     MACOSX_DEPLOYMENT_TARGET: "13.0"
     CODE_SIGN_STYLE: Automatic
@@ -40,3 +39,20 @@ targets:
           CODE_SIGN_IDENTITY: "Developer ID Application"
           DEVELOPMENT_TEAM: "5HQ5V9NP82"
           ENABLE_HARDENED_RUNTIME: YES
+    scheme:
+      testTargets:
+        - BrewDockTests
+
+  BrewDockTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: BrewDockTests
+    dependencies:
+      - target: BrewDock
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rossnicholson.BrewDockTests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGNING_ALLOWED: NO

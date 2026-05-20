@@ -25,6 +25,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupPanel()
         setupUpdateDot()
         observeUpdates()
+
+        // Don't shell out to brew when the app is launched as a unit-test host.
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         Task { await brewService.checkSelfUpdateSilent() }
         startPeriodicUpdateCheck()
     }

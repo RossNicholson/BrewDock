@@ -149,8 +149,13 @@ struct PackageRowView: View {
         NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
 
     private func openInTerminal(command: String) {
+        // Strip anything that isn't a safe filename character so the package name
+        // can't influence the path (e.g. a '/' escaping the temp directory).
+        let safeName = String(command.unicodeScalars.filter {
+            CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-").contains($0)
+        })
         let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("brewdock-\(command).command")
+            .appendingPathComponent("brewdock-\(safeName).command")
         // Single-quote the command to handle names with hyphens, dots, @ etc.
         let safe = command.replacingOccurrences(of: "'", with: "'\\''")
         let script = "#!/bin/bash\nclear\n'\(safe)'\n"

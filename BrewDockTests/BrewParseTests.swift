@@ -1,0 +1,90 @@
+import XCTest
+@testable import BrewDock
+
+/// Tests for the brittle bits: parsing Homebrew's command output. These are the
+/// most likely things to silently break when Homebrew changes its formatting.
+final class BrewParseTests: XCTestCase {
+
+    // MARK: brew list --versions
+
+    func testPackagesParsesNameAndVersion() {
+        let out = """
+        wget 1.21.4
+        git 2.44.0
+        """
+        let pkgs = BrewParse.packages(from: out, type: .formula, outdated: [])
+        XCTAssertEqual(pkgs.count, 2)
+        XCTAssertEqual(pkgs[0].name, "wget")
+        XCTAssertEqual(pkgs[0].version, "1.21.4")
+        XCTAssertEqual(pkgs[0].type, .formula)
+    }
+
+    func testPackagesKeepsMultipleVersionsAsVersionString() {
+        let pkgs = BrewParse.packages(from: "python@3.12 3.12.1 3.12.2", type: .formula, outdated: [])
+        XCTAssertEqual(pkgs.first?.name, "python@3.12")
+        XCTAssertEqual(pkgs.first?.version, "3.12.1 3.12.2")
+    }
+
+    func testPackagesFlagsOutdated() {
+        let pkgs = BrewParse.packages(from: "wget 1.0\ngit 2.0", type: .formula, outdated: ["git"])
+        XCTAssertFalse(pkgs[0].isOutdated)   // wget
+        XCTAssertTrue(pkgs[1].isOutdated)    // git
+    }
+
+    func testPackagesHandlesNameWithoutVersion() {
+        let pkgs = BrewParse.packages(from: "somecask", type: .cask, outdated: [])
+        XCTAssertEqual(pkgs.first?.name, "somecask")
+        XCTAssertEqual(pkgs.first?.version, "")
+    }
+
+    func testPackagesIgnoresBlankLines() {
+        XCTAssertTrue(BrewParse.packages(from: "\n\n   \n", type: .formula, outdated: []).isEmpty)
+    }
+
+    // MARK: brew services list --json
+
+    func testServicesParsesJSON() {
+        let json = """
+        [
+          {"name":"redis","status":"started","user":"ross","file":"/x"},
+          {"name":"postgresql","status":"stopped","user":null,"file":"/y"}
+        ]
+        """
+        let svcs = BrewParse.services(fromJSON: json)
+        XCTAssertEqual(svcs.count, 2)
+        XCTAssertEqual(svcs[0].name, "redis")
+        XCTAssertEqual(svcs[0].status, .started)
+        XCTAssertEqual(svcs[0].user, "ross")
+        XCTAssertEqual(svcs[1].status, .stopped)
+        XCTAssertEqual(svcs[1].user, "")   // null user -> empty string
+    }
+
+    func testServicesUnknownStatusFallsBack() {
+        let svcs = BrewParse.services(fromJSON: #"[{"name":"x","status":"weird","user":null}]"#)
+        XCTAssertEqual(svcs.first?.status, .unknown)
+    }
+
+    func testServicesEmptyOrInvalidJSON() {
+        XCTAssertTrue(BrewParse.services(fromJSON: "[]").isEmpty)
+        XCTAssertTrue(BrewParse.services(fromJSON: "not json").isEmpty)
+    }
+
+    // MARK: brew info --json=v2 --cask
+
+    func testCaskAppNamesExtractsAppArtifact() {
+        let json = """
+        {"casks":[
+          {"token":"iterm2","artifacts":[{"app":["iTerm.app"]},{"zap":[{}]}]},
+          {"token":"clionly","artifacts":[{"binary":["foo"]}]}
+        ]}
+        """
+        let map = BrewParse.caskAppNames(fromJSON: json)
+        XCTAssertEqual(map["iterm2"], ["iTerm.app"])
+        XCTAssertNil(map["clionly"])   // no app artifact -> not included
+    }
+
+    func testCaskAppNamesEmptyOnGarbage() {
+        XCTAssertTrue(BrewParse.caskAppNames(fromJSON: "nope").isEmpty)
+        XCTAssertTrue(BrewParse.caskAppNames(fromJSON: "{}").isEmpty)
+    }
+}
