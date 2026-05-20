@@ -11,7 +11,12 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish (create release + bump tap)? Leave off to just test build + notarize.'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # create the GitHub release (+ tag) in this repo
@@ -71,4 +76,10 @@ jobs:
           NOTARY_KEY_P8: ${{ runner.temp }}/notary.p8
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
-        run: ./scripts/release.sh --publish
+        run: |
+          # Tag pushes always publish; manual runs publish only if asked.
+          if [[ "${{ github.event_name }}" == "push" || "${{ inputs.publish }}" == "true" ]]; then
+            ./scripts/release.sh --publish
+          else
+            ./scripts/release.sh
+          fi
