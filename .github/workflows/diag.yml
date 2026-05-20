@@ -1,0 +1,14 @@
+name: Diag
+# Throwaway diagnostic: do Linux and macOS runners allocate for this account?
+on:
+  workflow_dispatch: {}
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Linux runner allocated OK on $(uname -srm)"
+  mac:
+    runs-on: macos-15
+    steps:
+      - run: echo "macOS runner allocated OK on $(sw_vers -productVersion)"
