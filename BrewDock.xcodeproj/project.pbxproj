@@ -41,16 +41,6 @@
 		FCDA32D50FEC4D1761B3D80C /* DiscoverPackage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverPackage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFrameworksBuildPhase section */
-		408513DA1D249FB5BE9C3199 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
 /* Begin PBXGroup section */
 		96D973215F2F9D9E52514672 /* BrewDock */ = {
 			isa = PBXGroup;
@@ -99,7 +89,6 @@
 			buildPhases = (
 				B3C2AF37C3860DF697653150 /* Sources */,
 				EED2D21BA58E205618D36AA7 /* Resources */,
-				408513DA1D249FB5BE9C3199 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -132,8 +121,6 @@
 			);
 			mainGroup = FDDCF261E707027AE34D28C2;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E36A701CBFF8956828D21571 /* Products */;
 			projectDirPath = "";
@@ -361,7 +348,6 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 60BCB17F25DAD72C99617655 /* Project object */;
 }

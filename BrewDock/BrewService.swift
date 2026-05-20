@@ -160,10 +160,11 @@ class BrewService: ObservableObject {
         selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
     }
 
-    // Called when the user explicitly clicks "Check for Updates" — runs brew update first
-    func checkSelfUpdate() async {
-        isCheckingSelfUpdate = true
-        defer { isCheckingSelfUpdate = false }
+    // Called when the user explicitly clicks "Check for Updates" — runs brew update first.
+    // `showProgress: false` lets the periodic background timer refresh quietly.
+    func checkSelfUpdate(showProgress: Bool = true) async {
+        if showProgress { isCheckingSelfUpdate = true }
+        defer { if showProgress { isCheckingSelfUpdate = false } }
         await brew(["update"], timeout: 60)
         let result = await brew(["outdated", "--cask", "brewdock"])
         selfUpdateAvailable = result.output.lines.contains { $0.trimmingCharacters(in: .whitespaces) == "brewdock" }
@@ -171,12 +172,76 @@ class BrewService: ObservableObject {
 
     func updateSelf() async {
         isUpdatingSelf = true
-        let result = await brew(["upgrade", "--cask", "brewdock"], timeout: 120)
-        if result.exitCode == 0 {
-            NSApp.terminate(nil)
-        } else {
+        // An app can't replace itself from a `brew` subprocess it has to quit first:
+        // the cask's `quit:` directive kills us, and the child brew dies mid-upgrade
+        // (its stdout pipe breaks), leaving the app closed and un-updated. Hand the
+        // work to a detached helper that outlives us, then quit so it can take over.
+        guard launchDetachedSelfUpdater() else {
             isUpdatingSelf = false
-            lastError = "Failed to update BrewDock"
+            lastError = "Couldn't start the updater."
+            return
+        }
+        NSApp.terminate(nil)
+    }
+
+    /// Writes a self-update script and launches it fully detached (its own null
+    /// stdio, reparented to launchd) so it survives this process quitting. The
+    /// script waits for us to exit, runs `brew upgrade --cask brewdock`, then
+    /// relaunches the freshly installed build.
+    private func launchDetachedSelfUpdater() -> Bool {
+        let fm = FileManager.default
+        guard let support = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return false
+        }
+        let dir = support.appendingPathComponent("BrewDock", isDirectory: true)
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let scriptURL = dir.appendingPathComponent("self-update.sh")
+        let logURL = dir.appendingPathComponent("self-update.log")
+
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let appPath = Bundle.main.bundlePath
+
+        // Note: `$(...)`, `$LOG`, `$status` are literal shell — only `\(...)` is
+        // interpolated by Swift. Paths are quoted to tolerate spaces.
+        let script = """
+        #!/bin/sh
+        export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        LOG="\(logURL.path)"
+        : > "$LOG"
+        echo "[$(date)] waiting for BrewDock (pid \(pid)) to quit" >> "$LOG"
+        for i in $(seq 1 60); do
+            kill -0 \(pid) 2>/dev/null || break
+            sleep 0.5
+        done
+        echo "[$(date)] running brew upgrade --cask brewdock" >> "$LOG"
+        "\(brewPath)" upgrade --cask brewdock >> "$LOG" 2>&1
+        status=$?
+        echo "[$(date)] brew exited with status $status" >> "$LOG"
+        if [ "$status" -eq 0 ]; then
+            open "\(appPath)"
+        else
+            osascript -e 'display notification "Update failed — see ~/Library/Application Support/BrewDock/self-update.log" with title "BrewDock"' >/dev/null 2>&1 || true
+        fi
+        """
+
+        do {
+            try script.write(to: scriptURL, atomically: true, encoding: .utf8)
+        } catch {
+            return false
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = [scriptURL.path]
+        // Detached stdio: a broken pipe to this (dying) process must not abort the helper.
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            return true
+        } catch {
+            return false
         }
     }
 

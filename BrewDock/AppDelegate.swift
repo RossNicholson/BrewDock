@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var eventMonitor: Any?
     private var dotView: NSView?
     private var cancellables = Set<AnyCancellable>()
+    private var updateCheckTask: Task<Void, Never>?
     let brewService = BrewService()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -25,6 +26,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupUpdateDot()
         observeUpdates()
         Task { await brewService.checkSelfUpdateSilent() }
+        startPeriodicUpdateCheck()
+    }
+
+    /// A menu bar app can run for days, so the launch-time check isn't enough to
+    /// notice a new release. Re-check every 6 hours in the background (quietly).
+    private func startPeriodicUpdateCheck() {
+        updateCheckTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(6 * 60 * 60))
+                guard let self else { return }
+                await self.brewService.checkSelfUpdate(showProgress: false)
+            }
+        }
     }
 
     private func setupUpdateDot() {
