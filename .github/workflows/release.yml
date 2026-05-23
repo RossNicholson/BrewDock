@@ -25,6 +25,23 @@ jobs:
   release:
     runs-on: macos-15
     steps:
+      - name: Check required secrets
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          NOTARY_API_KEY_P8_BASE64: ${{ secrets.NOTARY_API_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          TAP_PUSH_TOKEN: ${{ secrets.TAP_PUSH_TOKEN }}
+        run: |
+          missing=0
+          for s in DEVELOPER_ID_P12_BASE64 P12_PASSWORD NOTARY_API_KEY_P8_BASE64 \
+                   NOTARY_KEY_ID NOTARY_ISSUER_ID TAP_PUSH_TOKEN; do
+            if [ -z "${!s}" ]; then echo "::error::Missing required secret: $s"; missing=1; fi
+          done
+          [ "$missing" -eq 0 ] || { echo "Add them in Settings → Secrets and variables → Actions."; exit 1; }
+          echo "All required secrets present."
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
